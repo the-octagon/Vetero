@@ -19,6 +19,7 @@ package vetero;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -35,7 +36,6 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 /**
  *
@@ -43,18 +43,27 @@ import javafx.stage.WindowEvent;
  */
 
 public class Vetero extends Application {
+    //to store saved preferences and API ID
     File configFile = new File("./Vetero.config");
     
+    //text areas put data in. these won't last long
+    //more for testing
     TextArea topLeftTextArea = new TextArea();
     TextArea topRightTextArea = new TextArea();
     TextArea bottomTextArea = new TextArea();
+    
+    //these are housed in readInConfig()
+    //location that is sent to API query
     static String city = "";
-    //obtain from http://openweathermap.org/appid and add to config file, see readInConfig()
+    //API key that is obtained from http://openweathermap.org/appid and placed in config file
     String appID = "";
+    //
+    char preferredTempUnit;
+    Properties properties = new Properties();
+    Weather weather = null;
     
     @Override
-    public void start(Stage primaryStage) {
-        
+    public void start(Stage primaryStage) {    
         //create menu bar
             MenuBar menuBar = new MenuBar();
         //create menus
@@ -78,9 +87,9 @@ public class Vetero extends Application {
         fileMenuNewCity.setOnAction((ActionEvent t) -> {
             newCity();
         });
-        fileMenuManageCities.setOnAction((ActionEvent t) -> {
+        /*fileMenuManageCities.setOnAction((ActionEvent t) -> {
             manageCities();
-        });
+        });*/
         
         //set properties for stage/scene components
         topLeftTextArea.setWrapText(true);
@@ -101,35 +110,35 @@ public class Vetero extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
-        primaryStage.setOnCloseRequest((WindowEvent we) -> {
-            writeOutConfig();
-        }); 
+        //now that everything is built, to the weather functions
+        //read in info from config file
+        readInConfig();
+
         
-        
-        //determine if config file exists and create one or read in
-        if (testForConfigFile()) {
-            readInConfig();
-        } else {
-            writeOutConfig();
-        }
-        
-        //fetch weather data
-        Weather weather = new Weather(appID, city);
-        
-        
-        
-        //display weather data
+        //create new weather object with appID and city and
+        //display weather data in mainArea TextAreas
+        displayWeather();
+    }
+    
+    public void displayWeather() {
+        weather = new Weather(appID, city);
         topLeftTextArea.setText(
-                weather.getDescription() + "\n" + weather.getTempF() + "\u00b0 F"
+                weather.getDescription() + "\n" + weather.getTemp(preferredTempUnit) + "\u00b0 F"
         );
         bottomTextArea.setText(weather.getLocation());
-                
-
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
     }
     
     public void newCity() {
         //open new city dialog
         TextInputDialog dialog = new TextInputDialog("Gravity Falls Oregon");
+        
         dialog.setTitle("Add A New City");
         dialog.setHeaderText("Enter the Name");
         dialog.setContentText("City State:");
@@ -139,45 +148,46 @@ public class Vetero extends Application {
         if(result.isPresent()) {
             
             city = result.toString().substring(result.toString().indexOf("[")+1, result.toString().indexOf("]"));
+            properties.put("savedCity", city);
+            writeOutConfig();
+            displayWeather();
         } else {
             city = "";
         }
     }
 
-    
-    public void writeOutConfig() {
-        /*try {
-            FileWriter fw = new FileWriter(configFile);
-            String output = "city: " + city;
-            fw.write(output);
-            fw.close();
-            
-        } catch (IOException e) {
-            System.err.println("Problem writing to the file Vetero.config in writeOutConfig()");
-        }*/
-    }
-    
-    public boolean testForConfigFile() {
-        return configFile.exists();
-    }
-    
     //get API ID from http://openweathermap.org/appid and place in the config file.
     public void readInConfig() {
         try {
-            Properties prop = new Properties();
             InputStream is = new FileInputStream(configFile);
-            prop.load(is);
-            appID = prop.getProperty("appID");
-            city = prop.getProperty("savedCity");
-            is.close();            
+            properties.load(is);
+            appID = properties.getProperty("appID");
+            city = properties.getProperty("savedCity");
+            preferredTempUnit = properties.getProperty("preferredTempUnit").charAt(0);
+            is.close();
         } catch (FileNotFoundException e) {
             System.err.print(e);
         } catch (IOException e) {
             System.err.print(e);
         }
     }
-    
-    
+
+    public boolean testForConfigFile() {
+        return configFile.exists();
+    }
+
+    public void writeOutConfig() {
+        try {
+            FileOutputStream os = new FileOutputStream(configFile);
+            properties.store(new FileOutputStream(configFile), null);
+        } catch (IOException e) {
+            System.err.println("Problem writing to the file Vetero.config in writeOutConfig()");
+        }
+    }
+
+
+
+//under construction
     public void manageCities() {
         Stage manageCitiesStage = new Stage ();        
         GridPane manageCitiesGridPane = new GridPane();
@@ -196,10 +206,5 @@ public class Vetero extends Application {
         manageCitiesStage.show();
     }
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
-    }
+
 }

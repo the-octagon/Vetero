@@ -91,12 +91,24 @@ class Weather {
         
         
         //accessors
+        /**
+         * 
+         * @return A String that describes weather conditions, i.e. "partly cloudy", "scattered thunderstorms"
+         */
         public String getDescription() {
             return description;
         }
+        /**
+         * 
+         * @return A double representing humidity as a percentage.
+         */
         public double getHumidity() {
             return humidity;
         }
+        /**
+         * 
+         * @return A String that contains the name of the location queried.
+         */
         public String getLocation() {
             return location;
         }
@@ -109,14 +121,35 @@ class Weather {
         public Date getSunset() {
             return sunset;
         }
+        /**
+         * @param
+         * @return A String that contains the temperature in Kelvin
+         */
         public String getTemp() {
+            //default is kelvin
             return df.format(temp);
         }
-        public String getTempC() {
-            return df.format(temp - 273.15);
-        }
-        public String getTempF() {
-            return df.format(temp * 1.8 - 459.67);
+        /**
+         * 
+         * @param tempUnit The preferred unit of measure as 'c', 'C', 'f', 'F', 'k', or 'K' Celsius, Fahrenheit, or Kelvin, respectively.
+         * @return A String that contains the temperature in a given unit of measure.
+         */
+        public String getTemp(char tempUnit) {
+            switch (tempUnit) {
+                case 'F':
+                case 'f':
+                    return df.format(temp * 1.8 - 459.67);
+                case 'C':
+                case 'c':
+                    return df.format(temp - 273.15);
+                case 'K':
+                case 'k':
+                    return df.format(temp);
+                default:
+                    System.out.println("You passed an invalid temperature unit.");
+                    System.out.println("An empty string will be returned.");
+                    return "";
+            }
         }
         public double getTemp_min() {
             return temp_min;
