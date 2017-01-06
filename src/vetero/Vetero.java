@@ -36,6 +36,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import popup.Popup;
 
 /**
  *
@@ -51,6 +52,7 @@ public class Vetero extends Application {
     TextArea topLeftTextArea = new TextArea();
     TextArea topRightTextArea = new TextArea();
     TextArea bottomTextArea = new TextArea();
+    Popup popup = new Popup("2017", "a weather information app", "Vetero");
     
     //these are housed in readInConfig()
     //location that is sent to API query
@@ -86,6 +88,15 @@ public class Vetero extends Application {
         //menuItem functions
         fileMenuNewCity.setOnAction((ActionEvent t) -> {
             newCity();
+        });
+        aboutMenuAbout.setOnAction((ActionEvent t) -> {
+            popup.aboutDialog();
+        });
+        aboutMenuContact.setOnAction((ActionEvent t) -> {
+            popup.contactDialog();
+        });
+        aboutMenuLicense.setOnAction((ActionEvent t) -> {
+            popup.licenseDialog();
         });
         /*fileMenuManageCities.setOnAction((ActionEvent t) -> {
             manageCities();
