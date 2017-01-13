@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Properties;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
@@ -33,6 +34,8 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
@@ -52,6 +55,7 @@ public class Vetero extends Application {
     TextArea topLeftTextArea = new TextArea();
     TextArea topRightTextArea = new TextArea();
     TextArea bottomTextArea = new TextArea();
+    ImageView iconImage = new ImageView(new Image("http://openweathermap.org/img/w/01d.png"));
     Popup popup = new Popup("2017", "a weather information app", "Vetero");
     
     //these are housed in readInConfig()
@@ -109,9 +113,12 @@ public class Vetero extends Application {
         BorderPane root = new BorderPane();
         GridPane mainArea = new GridPane();
         //add components to mainArea subpane
+        
         mainArea.add(topLeftTextArea, 1, 1);
-        mainArea.add(topRightTextArea, 2, 1);
+        //mainArea.add(topRightTextArea, 2, 1);
         mainArea.add(bottomTextArea, 1, 2, 2, 2);
+        mainArea.add(iconImage, 2, 1);      
+        mainArea.setMargin(iconImage, new Insets(2,2,2,2));
         //add components to root pane
         root.setTop(menuBar);
         root.setCenter(mainArea);
@@ -137,6 +144,8 @@ public class Vetero extends Application {
                 weather.getDescription() + "\n" + weather.getTemp(preferredTempUnit) + "\u00b0 F"
         );
         bottomTextArea.setText(weather.getLocation());
+        iconImage.setImage(weather.getIconImage());
+        
     }
     
     /**
