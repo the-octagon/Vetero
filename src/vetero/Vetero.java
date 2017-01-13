@@ -29,6 +29,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -55,6 +56,10 @@ public class Vetero extends Application {
     TextArea topLeftTextArea = new TextArea();
     TextArea topRightTextArea = new TextArea();
     TextArea bottomTextArea = new TextArea();
+    Label descriptionLabel = new Label();
+    Label temperatureLabel = new Label();
+    
+    
     ImageView iconImage = new ImageView(new Image("http://openweathermap.org/img/w/01d.png"));
     Popup popup = new Popup("2017", "a weather information app", "Vetero");
     
@@ -141,7 +146,7 @@ public class Vetero extends Application {
     public void displayWeather() {
         weather = new Weather(appID, city);
         topLeftTextArea.setText(
-                weather.getDescription() + "\n" + weather.getTemp(preferredTempUnit) + "\u00b0 F"
+                weather.getDescription() + "\n" + weather.getTemp(preferredTempUnit)
         );
         bottomTextArea.setText(weather.getLocation());
         iconImage.setImage(weather.getIconImage());

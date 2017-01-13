@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -50,8 +51,6 @@ class Weather {
     private Date sunrise;
     private Date sunset;
     private Double temp;
-    private Double temp_min;
-    private Double temp_max;
     private Double visibility;
     private String weatherReport;
     private Double windSpeed;
@@ -61,8 +60,13 @@ class Weather {
         
 
     public Weather(String appID, String city) {
-        fetchWeatherReport(appID, city);
-        convertWeatherReport();
+        try {
+            fetchWeatherReport(appID, city);
+            convertWeatherReport();
+        } catch (NullPointerException npe) {
+            System.out.println("A NullPointerException occured in Weather()");
+        }
+        
     } 
     public Weather() {
 
@@ -116,12 +120,6 @@ class Weather {
     private void setTemp(Double temp) {
         this.temp = temp;
     }
-    private void setTemp_min(Double temp_min) {
-        this.temp_min = temp_min;
-    }
-    private void setTemp_max(Double temp_max) {
-        this.temp_max = temp_max;
-    }
     private void setVisibility(Double visibility) {
         this.visibility = visibility;
     }
@@ -139,14 +137,20 @@ class Weather {
      * @return A String that describes weather conditions, i.e. "partly cloudy", "scattered thunderstorms"
      */
     public String getDescription() {
-        return description;
+        if (description != null) {
+            return description;
+        }
+        return "error";
     }
     /**
      * 
      * @return A double representing humidity as a percentage.
      */
     public double getHumidity() {
-        return humidity;
+        if (humidity != null) {
+            return humidity;
+        }
+        return 0.0;
     }
     public Image getIconImage() {
         return iconImage;
@@ -156,24 +160,39 @@ class Weather {
      * @return A String that contains the name of the location queried.
      */
     public String getLocation() {
-        return location;
+        if (location != null) {
+            return location;
+        }
+        return "error";
     }
     public double getPressure() {
-        return pressure;
+        if (pressure != null) {
+            return pressure;
+        }
+        return 0.0;
     }
     public Date getSunrise() {
-        return sunrise;
+        if (sunrise != null) {
+            return sunrise;
+        }
+        return new Date();
     }
     public Date getSunset() {
-        return sunset;
+        if (sunset != null) {
+            return sunset;
+        }
+        return new Date();
     }
     /**
      * @param
      * @return A String that contains the temperature in Kelvin
      */
     public String getTemp() {
-        //default is kelvin
-        return df.format(temp);
+        if (temp != null) {
+            //default is kelvin
+            return df.format(temp);
+        }
+        return "error";
     }
     /**
      * 
@@ -181,41 +200,47 @@ class Weather {
      * @return A String that contains the temperature in a given unit of measure.
      */
     public String getTemp(char tempUnit) {
-        switch (tempUnit) {
-            case 'F':
-            case 'f':
-                return df.format(temp * 1.8 - 459.67);
-            case 'C':
-            case 'c':
-                return df.format(temp - 273.15);
-            case 'K':
-            case 'k':
-                return df.format(temp);
-            default:
-                System.out.println("You passed an invalid temperature unit.");
-                System.out.println("An empty string will be returned.");
-                return "";
+        if (temp != null) {
+            switch (tempUnit) {
+                case 'F':
+                case 'f':
+                    return df.format(temp * 1.8 - 459.67) + "\u00b0 F";
+                case 'C':
+                case 'c':
+                    return df.format(temp - 273.15) + "\u00b0 C";
+                case 'K':
+                case 'k':
+                    return df.format(temp) + " K";
+                default:
+                    System.out.println("You passed an invalid temperature unit.");
+                    System.out.println("An empty string will be returned.");
+                    return "";
+            }
         }
-    }
-    public double getTemp_min() {
-        return temp_min;
-    }
-    public double getTemp_max() {
-        return temp_max;
+        return "";
     }
     public double getVisibility() {
-        return visibility;
+        if (visibility != null) {
+            return visibility;
+        }
+        return 0.0;
     }
     public double getWindDeg() {
-        return windDeg;
+        if (windDeg != null) {
+            return windDeg;
+        }
+        return 0.0;
     }
     public double getWindSpeed() {
-        return windSpeed;
+        if (windSpeed != null) {
+            return windSpeed;
+        }
+        return 0.0;
     }
 
     //private methods
     private void fetchWeatherReport(String appID, String city) {
-                    URL u;
+        URL u;
         InputStream is = null;
         DataInputStream dis;
         String s;
@@ -227,17 +252,11 @@ class Weather {
             while ((s = dis.readLine()) != null) {
                 weatherReport = s;
             }
-        }catch (MalformedURLException mue) {
-            System.out.println("Ouch - a MalformedURLException happened.");
-            mue.printStackTrace();
-        } catch (IOException ioe) {
-            System.out.println("Oops- an IOException happened.");
-            ioe.printStackTrace();
         } catch (Exception e) {
             Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("An error occcured.");
-            alert.setContentText("Is your internet connetion working?");
+            alert.setTitle("Vetero - Error");
+            alert.setHeaderText("An error occured.");
+            alert.setContentText("Are you connected to the internet?");
 
             alert.showAndWait();
         } finally {
@@ -247,25 +266,80 @@ class Weather {
                  //do nothing
              }
         }
-
     }
     private void convertWeatherReport() {
-        JSONObject weatherObject = new JSONObject(weatherReport);
-
-        setDescription(weatherObject.getJSONArray("weather").getJSONObject(0).getString("description"));
-        setHumidity(weatherObject.getJSONObject("main").getDouble("humidity"));
-        setIconImage(weatherObject.getJSONArray("weather").getJSONObject(0).getString("icon"));
-        setLocation(weatherObject.getString("name"));
-        setPressure(weatherObject.getJSONObject("main").getDouble("pressure"));
-        setSunset(weatherObject.getJSONObject("sys").getLong("sunset"));
-        setSunrise(weatherObject.getJSONObject("sys").getLong("sunrise"));
-        setTemp(weatherObject.getJSONObject("main").getDouble("temp"));
-        setTemp_min(weatherObject.getJSONObject("main").getDouble("temp_min"));
-        setTemp_max(weatherObject.getJSONObject("main").getDouble("temp_max"));
-        setVisibility(weatherObject.getDouble("visibility"));
-        //setWindDeg(weatherObject.getJSONObject("wind").getDouble("deg"));
-        setWindSpeed(weatherObject.getJSONObject("wind").getDouble("speed"));
-
-
+        JSONObject weatherObject = null;
+        try  {
+            weatherObject = new JSONObject(weatherReport);
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport while creating JSONObject");
+            e.printStackTrace();
+        }
+        try {
+            setDescription(weatherObject.getJSONArray("weather").getJSONObject(0).getString("description"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setDescription");
+            e.printStackTrace();
+        }
+        try {
+            setHumidity(weatherObject.getJSONObject("main").getDouble("humidity"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setHumidity");
+            e.printStackTrace();
+        }
+        try {
+            setIconImage(weatherObject.getJSONArray("weather").getJSONObject(0).getString("icon"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setIconImage");
+            e.printStackTrace();
+        }
+        try {
+            setLocation(weatherObject.getString("name"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setLocation");
+            e.printStackTrace();
+        }
+        try {
+            setPressure(weatherObject.getJSONObject("main").getDouble("pressure"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setPressure");
+            e.printStackTrace();
+        }
+        try {
+            setSunset(weatherObject.getJSONObject("sys").getLong("sunset"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setSunset");
+            e.printStackTrace();
+        }
+        try {
+            setSunrise(weatherObject.getJSONObject("sys").getLong("sunrise"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setSunrise");
+            e.printStackTrace();
+        }
+        try {
+            setTemp(weatherObject.getJSONObject("main").getDouble("temp"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setTemp");
+            e.printStackTrace();
+        }
+        try {
+            setVisibility(weatherObject.getDouble("visibility"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setVisibility");
+            e.printStackTrace();
+        }
+        try {
+            setWindDeg(weatherObject.getJSONObject("wind").getDouble("deg"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setWindDeg");
+            e.printStackTrace();
+        }
+        try {
+            setWindSpeed(weatherObject.getJSONObject("wind").getDouble("speed"));
+        } catch (Exception e) {
+            System.out.println("Something went wrong in convertWeatherReport under setWindSpeed");
+            e.printStackTrace();
+        }
     }
 }
